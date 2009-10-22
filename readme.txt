@@ -1,3 +1,9 @@
+$Date$
+$Revision$
+$Author$
+$HeaderURL$
+$Id$
+
 Linux API for Sputnik robot.
 
 For proper running of the API one shoud have the following library.
@@ -8,4 +14,4 @@ To compile example one should have
  library. It is nessesery ONLY to run example. Sputnik API does not not need it.
 
 TODO:
-- sometimes aplication crash
+- sometimes aplication crash.
