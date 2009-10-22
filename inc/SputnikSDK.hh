@@ -43,26 +43,8 @@
 #define SPUTNIKSDK_H
 
 #include "DrRobotSDK.hh"
-
-#define PWM_CONTROL 0
-#define POSITION_CONTROL 1
-#define VELOCITY_CONTROL 2
-#define POT_SINGLE 0
-#define POT_DUAL 1
-#define ENCODER 2
-
-enum Board_t_N {CONTROL=0,MEDIA=1};
-enum Board_t_TECH {PMS5005=0,PMB5010=1};
-enum Board_t_ID {CONTROL_ID=1,MEDIA_ID=8};  
-
-enum ControlDevice_t_N {MOTORS=0,SENSORS=1,CUSTOMDATA=2};
-enum ControlDevice_t_ID {MOTORS_ID=123,SENSORS_ID=125,CUSTOMDATA_ID=124};
-
-enum MediaDevice_t_N {AUDIO=0,VIDEO=1,POWERCONTROLER=2};
-enum MediaDevice_t_ID {AUDIO_ID=10,VIDEO_ID=9,POWERCONTROLER_ID=124};
-
-
-
+#include <list>
+#include "cv.h"
 
 
 /*! \class Sputnik_t
@@ -658,6 +640,11 @@ public:
    */
   IplImage* getIplImage();
 
+  unsigned char* getRGBImage();
+  
+  unsigned int getWidth();
+  unsigned int getHeight();
+
   /*! \brief Start recodring
    *
    *  Start recodring an audio file.
@@ -739,6 +726,19 @@ public:
    */
   void ClearOutVoiceBuffer();
 
+  unsigned char GetMouth() {return face.Mouth;};
+  char GetEyesV(){return face.EyesV;};
+  char GetEyesH(){return face.EyesH;};
+  char GetNeckV(){return face.NeckV;};
+  char GetNeckH(){return face.NeckH;};
+
+  
+  void SetSensorUsage(unsigned char SensorType);  
+  void SetControlMode(unsigned char ControlMode);
+  void SetPositionControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100);
+  void SetVelocityControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100);  
+
+
 private:
   bool active;
   friend void * taking_photo(void *ptr); //!< Cyclic taking photos function
@@ -772,9 +772,13 @@ private:
   float HAEMAAlpha;
   unsigned char *HAresult;
   int okno;
+  std::list<short> IRHist;
+  std::list<short> SonarHist;
   
   unsigned char sensor_type;
   unsigned char control_mode;
+  IplImage* img;
+
 };
 
   

@@ -7,6 +7,9 @@
 
 #include <fcntl.h>
 
+#define LOOP_DELAY_LONG  200000
+#define LOOP_DELAY_SHORT 5000
+
 /*****************************************************************************/
 /*            Range and Distance Sensors                                     */
 /*****************************************************************************/
@@ -142,10 +145,11 @@ unsigned short int DrRobotMotors_t::GetCurrent(unsigned char channel){
 }
 
 char DrRobotMotors_t::GetDir(unsigned char channel){
+  //return MotorData.Dir;
   switch (channel)
     {
-    case 0: return ((0x01&MotorData.Dir)==1)*2-1;
-    case 1: return ((0x03&MotorData.Dir)==3)*2-1;
+    case 0: return -(((0x01&MotorData.Dir)==1)*2-1); break;
+    case 1: return ((0x02&MotorData.Dir)==2)*2-1; break;
     }
   return 0;
 }
@@ -218,10 +222,10 @@ void DrRobotMotors_t::SuspendAll() {
 }
 
 void DrRobotMotors_t::SetPositionControlPID( 
-				  unsigned char channel,
-				  unsigned short int Kp, 
-				  unsigned short Kd, 
-				  unsigned short int Ki_x100){
+					    unsigned char channel,
+					    unsigned short int Kp, 
+					    unsigned short Kd, 
+					    unsigned short int Ki_x100){
   unsigned char length=5;
   unsigned char *data;
   data=(unsigned char*)calloc(length,sizeof(unsigned char));
@@ -240,15 +244,15 @@ void DrRobotMotors_t::SetPositionControlPID(
   *data=0x07;
   *(data+1)=channel;
   *(data+2)=0x03; //Ki_x100
-  *(data+3)=Kp/100;
-  *(data+4)=Kp%100;
+  *(data+3)=Ki_x100/100;
+  *(data+4)=Ki_x100%100;
   SendData(7,length,data);
 }
 void DrRobotMotors_t::SetVelocityControlPID( 
-				  unsigned char channel,
-				  unsigned short int Kp, 
-				  unsigned short Kd, 
-				  unsigned short int Ki_x100){
+					    unsigned char channel,
+					    unsigned short int Kp, 
+					    unsigned short Kd, 
+					    unsigned short int Ki_x100){
   unsigned char length=5;
   unsigned char *data;
   data=(unsigned char*)calloc(length,sizeof(unsigned char));
@@ -267,14 +271,14 @@ void DrRobotMotors_t::SetVelocityControlPID(
   *data=0x08;
   *(data+1)=channel;
   *(data+2)=0x03; //Ki_x100
-  *(data+3)=Kp/100;
-  *(data+4)=Kp%100;
+  *(data+3)=Ki_x100/100;
+  *(data+4)=Ki_x100%100;
   SendData(7,length,data);
 }
 
 
 void DrRobotMotors_t::SetSensorUsage( unsigned char channel,
-			   unsigned char SensorType){
+				      unsigned char SensorType){
   unsigned char length=3;
   unsigned char *data;
   data=(unsigned char*)calloc(length,sizeof(unsigned char));
@@ -285,7 +289,7 @@ void DrRobotMotors_t::SetSensorUsage( unsigned char channel,
 }
 
 void DrRobotMotors_t::SetControlMode( unsigned char channel,
-			   unsigned char ControlMode){
+				      unsigned char ControlMode){
   unsigned char length=3;
   unsigned char *data;
  
@@ -297,8 +301,8 @@ void DrRobotMotors_t::SetControlMode( unsigned char channel,
 }
 
 void DrRobotMotors_t::PositionTimeCtr( unsigned char channel,
-			    unsigned short int cmdValue,
-			    unsigned short int timePeriod){
+				       unsigned short int cmdValue,
+				       unsigned short int timePeriod){
   unsigned char length=6;
   unsigned char *data;
   
@@ -313,7 +317,7 @@ void DrRobotMotors_t::PositionTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::PositionNonTimeCtr( unsigned char channel,
-			       unsigned short int cmdValue){
+					  unsigned short int cmdValue){
   unsigned char length=3;
   unsigned char *data;
   
@@ -325,8 +329,8 @@ void DrRobotMotors_t::PositionNonTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::VelocityTimeCtr( unsigned char channel,
-			    unsigned short int cmdValue,
-			    unsigned short int timePeriod){
+				       unsigned short int cmdValue,
+				       unsigned short int timePeriod){
   unsigned char length=6;
   unsigned char *data;
 
@@ -341,7 +345,7 @@ void DrRobotMotors_t::VelocityTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::VelocityNonTimeCtr( unsigned char channel,
-			       unsigned short int cmdValue){
+					  unsigned short int cmdValue){
   unsigned char length=3;
   unsigned char *data;
 
@@ -353,8 +357,8 @@ void DrRobotMotors_t::VelocityNonTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::PwmTimeCtr( unsigned char channel,
-		       unsigned short int cmdValue,
-		       unsigned short int timePeriod){
+				  unsigned short int cmdValue,
+				  unsigned short int timePeriod){
   unsigned char length=6;
   unsigned char *data;
 
@@ -368,7 +372,7 @@ void DrRobotMotors_t::PwmTimeCtr( unsigned char channel,
   SendData(5,length,data);
 }
 void DrRobotMotors_t::PwmNonTimeCtr( unsigned char channel,
-			  unsigned short int cmdValue){
+				     unsigned short int cmdValue){
   unsigned char length=3;
   unsigned char *data;
 
@@ -380,10 +384,10 @@ void DrRobotMotors_t::PwmNonTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::PositionTimeCtrAll( short int cmd1,
-			       short int cmd2, short int cmd3,
-			       short int cmd4, short int cmd5,
-			       short int cmd6, 
-			       unsigned short int timePeriod){
+					  short int cmd2, short int cmd3,
+					  short int cmd4, short int cmd5,
+					  short int cmd6, 
+					  unsigned short int timePeriod){
   unsigned char length=14;
   unsigned char *data;
 
@@ -406,9 +410,9 @@ void DrRobotMotors_t::PositionTimeCtrAll( short int cmd1,
 }
 
 void DrRobotMotors_t::PositionNonTimeCtrAll( short int cmd1,
-				  short int cmd2, short int cmd3,
-				  short int cmd4, short int cmd5,
-				  short int cmd6){
+					     short int cmd2, short int cmd3,
+					     short int cmd4, short int cmd5,
+					     short int cmd6){
   unsigned char length=12;
   unsigned char *data;
 
@@ -430,10 +434,10 @@ void DrRobotMotors_t::PositionNonTimeCtrAll( short int cmd1,
 
 
 void DrRobotMotors_t::VelocityTimeCtrAll( unsigned short int cmd1,
-			       unsigned short int cmd2, unsigned short int cmd3,
-			       unsigned short int cmd4, unsigned short int cmd5,
-			       unsigned short int cmd6, 
-			       unsigned short int timePeriod){
+					  unsigned short int cmd2, unsigned short int cmd3,
+					  unsigned short int cmd4, unsigned short int cmd5,
+					  unsigned short int cmd6, 
+					  unsigned short int timePeriod){
   unsigned char length=14;
   unsigned char *data;
 
@@ -456,9 +460,9 @@ void DrRobotMotors_t::VelocityTimeCtrAll( unsigned short int cmd1,
 }
 
 void DrRobotMotors_t::VelocityNonTimeCtrAll( unsigned short int cmd1,
-				  unsigned short int cmd2, unsigned short int cmd3,
-				  unsigned short int cmd4, unsigned short int cmd5,
-				  unsigned short int cmd6){
+					     unsigned short int cmd2, unsigned short int cmd3,
+					     unsigned short int cmd4, unsigned short int cmd5,
+					     unsigned short int cmd6){
   unsigned char length=12;
   unsigned char *data;
 
@@ -479,10 +483,10 @@ void DrRobotMotors_t::VelocityNonTimeCtrAll( unsigned short int cmd1,
 }
 
 void DrRobotMotors_t::PwmTimeCtrAll( short int cmd1,
-			  short int cmd2, short int cmd3,
-			  short int cmd4, short int cmd5,
-			  short int cmd6, 
-			  unsigned short int timePeriod){
+				     short int cmd2, short int cmd3,
+				     short int cmd4, short int cmd5,
+				     short int cmd6, 
+				     unsigned short int timePeriod){
   unsigned char length=14;
   unsigned char *data;
 
@@ -505,9 +509,9 @@ void DrRobotMotors_t::PwmTimeCtrAll( short int cmd1,
 }
 
 void DrRobotMotors_t::PwmNonTimeCtrAll( short int cmd1,
-			     short int cmd2, short int cmd3,
-			     short int cmd4, short int cmd5,
-			     short int cmd6){
+					short int cmd2, short int cmd3,
+					short int cmd4, short int cmd5,
+					short int cmd6){
   unsigned char length=12;
   unsigned char *data;
 
@@ -564,8 +568,8 @@ void DrRobotMotors_t::ServoDisableAll() {
 }
 
 void DrRobotMotors_t::ServoTimeCtr( unsigned char channel, 
-			   unsigned short int cmdValue,
-			   unsigned short int timePeriod){
+				    unsigned short int cmdValue,
+				    unsigned short int timePeriod){
   unsigned char length=6;
   unsigned char *data;
 
@@ -579,7 +583,7 @@ void DrRobotMotors_t::ServoTimeCtr( unsigned char channel,
   SendData(28,length,data);
 }
 void DrRobotMotors_t::ServoNonTimeCtr( unsigned char channel, 
-			      unsigned short int cmdValue){
+				       unsigned short int cmdValue){
   unsigned char length=3;
   unsigned char *data;
 
@@ -591,8 +595,8 @@ void DrRobotMotors_t::ServoNonTimeCtr( unsigned char channel,
 }
 
 void DrRobotMotors_t::ServoTimeCtrAll( short int cmd1, short int cmd2,
-			      short int cmd3, short int cmd4, short int cmd5,
-			      short int cmd6, unsigned short int timePeriod){
+				       short int cmd3, short int cmd4, short int cmd5,
+				       short int cmd6, unsigned short int timePeriod){
   unsigned char length=14;
   unsigned char *data;
 
@@ -615,8 +619,8 @@ void DrRobotMotors_t::ServoTimeCtrAll( short int cmd1, short int cmd2,
 }
 
 void DrRobotMotors_t::ServoNonTimeCtrAll( short int cmd1, 
-			short int cmd2, short int cmd3, short int cmd4, 
-			short int cmd5, short int cmd6){
+					  short int cmd2, short int cmd3, short int cmd4, 
+					  short int cmd5, short int cmd6){
   unsigned char length=12;
   unsigned char *data;
 
@@ -688,7 +692,7 @@ void DrRobotCustomData_t::SetDIN(unsigned char value) {
 #define LINE_LENGTH 80
 
 unsigned char DrRobotCustomData_t::ReadPGM(FILE *p, int image_pgm[64][128], int *dimX, 
-	    int *dimY, int *grayness){
+					   int *dimY, int *grayness){
   char s[LINE_LENGTH];
   int znak,koniec=0,i,j;
   int pixel;
@@ -761,20 +765,20 @@ unsigned char DrRobotCustomData_t::DisplayPGM(char *bmpFileName){
   data=(unsigned char*)calloc(length,sizeof(unsigned char));  
   while (frame<16) 
     {
-    *data=frame;
-    for(x=0;x<dimX/2;x++) {
-      value=0;
-      multiplyier=128;
-      for(y=7;y>=0;y--) {
-	value+=multiplyier*image_pgm[y+frame/2*8][x+(dimX/2)*(frame%2)];
-	multiplyier/=2;
+      *data=frame;
+      for(x=0;x<dimX/2;x++) {
+	value=0;
+	multiplyier=128;
+	for(y=7;y>=0;y--) {
+	  value+=multiplyier*image_pgm[y+frame/2*8][x+(dimX/2)*(frame%2)];
+	  multiplyier/=2;
+	}
+	*(data+x+1)=value;
       }
-      *(data+x+1)=value;
+      //result+=(1<<frame)*(SendData(23,length,data)>0);
+      SendData(23,length,data);
+      frame++;
     }
-    //result+=(1<<frame)*(SendData(23,length,data)>0);
-    SendData(23,length,data);
-    frame++;
-  }
   return result;
 }
 
@@ -886,21 +890,21 @@ unsigned char DrRobotPowerControler_t::GetChargePath(){
 #pragma pack(1)     /* set alignment to 1 byte boundary */
 
 struct WAVEFileHeader{
-	unsigned short wFormatTag;
-	unsigned short nChannels;
-	unsigned long nSamplesPerSec;
-	unsigned long nAvgBytesPerSec;
-	unsigned short nBlockAlign;
-	unsigned short wBitsPerSample;
+  unsigned short wFormatTag;
+  unsigned short nChannels;
+  unsigned long nSamplesPerSec;
+  unsigned long nAvgBytesPerSec;
+  unsigned short nBlockAlign;
+  unsigned short wBitsPerSample;
 };
 
 struct  FileHeader
 {
-	unsigned long lRiff;
-	unsigned long lFileSize;
-	unsigned long lWave ;
-	unsigned long lFormat;
-	unsigned long lFormatLength;
+  unsigned long lRiff;
+  unsigned long lFileSize;
+  unsigned long lWave ;
+  unsigned long lFormat;
+  unsigned long lFormatLength;
 };
 
 struct ChunkHeader
@@ -918,7 +922,9 @@ DrRobotVideo_t::DrRobotVideo_t(unsigned char dID, DrRobotBoard_t *board): DrRobo
   takingPhotoFlag = 0;
   Last_Line_Num= 0;
   Line_Num_Wrong=0;
-  img = cvCreateImage(cvSize(176,144),IPL_DEPTH_8U,3);
+  height=144;
+  width=176;
+  //img = cvCreateImage(cvSize(176,144),IPL_DEPTH_8U,3);
 }
 
 void DrRobotVideo_t::RefreshData(unsigned char *dataBuffer,unsigned long dataLength)
@@ -926,7 +932,6 @@ void DrRobotVideo_t::RefreshData(unsigned char *dataBuffer,unsigned long dataLen
   int i;
   unsigned char lineNumber = dataBuffer[0];//dataBuffer[INDEX_DATA];
   unsigned char Length = dataLength;//dataBuffer[INDEX_LENGTH];
-  
   //printf(" Line: %d %d \n",(int) lineNumber,(int)dataLength);
   //For get rid of the residal 
   if(lineNumber ==0) {
@@ -988,8 +993,9 @@ void DrRobotVideo_t::RefreshData(unsigned char *dataBuffer,unsigned long dataLen
 
 void DrRobotVideo_t::DealWithVideo()
 {
-  int i,j;
+  //int i,j;
   UYVY2RGB(70,imageBuffer,imageBufferPtr,rgbArr,144,176);
+  /*
   for(i=0;i<144;i++)
     {
       for(j=0;j<176;j++)
@@ -1002,11 +1008,14 @@ void DrRobotVideo_t::DealWithVideo()
 	    *(rgbArr+i*176*3+j*3+2);
 	}
     }
+  */
 }
 
+/*
 IplImage* DrRobotVideo_t::getIplImage(){
   return img;
 }
+*/
 
 void DrRobotVideo_t::TakePhoto(){
   SendData(0x20,0,NULL);
@@ -1067,20 +1076,20 @@ void DrRobotAudio_t::StopAudioPlay(){
 }
 
 void DrRobotAudio_t::SendAudio(unsigned char *data,
-	       unsigned char length) {
+			       unsigned char length) {
   SendData(0x0A,length,data);
 }
 
 
 void DrRobotAudio_t::adpcm_init(){
-        state.valprev = 0; /* Previous output value */
-        state.index = 0; /* Index into stepsize table */
+  state.valprev = 0; /* Previous output value */
+  state.index = 0; /* Index into stepsize table */
 }
 
 
 
 void DrRobotAudio_t::adpcm_decoder(unsigned char *indata, short *outdata,
-		   int len)
+				   int len)
 {
   static int indexTable[16] = {
     -1, -1, -1, -1, 2, 4, 6, 8,
@@ -1141,13 +1150,13 @@ void DrRobotAudio_t::adpcm_decoder(unsigned char *indata, short *outdata,
     if ( sign )
       valpred -= vpdiff;
     else
-          valpred += vpdiff;
+      valpred += vpdiff;
     /* Step 5 - clamp output value */
     if ( valpred > 32767 )
       valpred = 32767;
     else if ( valpred < -32768 )
       valpred = -32768;
-        /* Step 6 - Update step value */
+    /* Step 6 - Update step value */
     step = stepsizeTable[index];
     /* Step 7 - Output value */
     *(outp++) = valpred;
@@ -1161,11 +1170,11 @@ void DrRobotAudio_t::adpcm_decoder(unsigned char *indata, short *outdata,
 // audio data length,
 //
 void DrRobotAudio_t::adpcm_coder(short *indata, unsigned char *outdata,
-		 int len)
+				 int len)
 {
   static int indexTable[16] = {
-   -1, -1, -1, -1, 2, 4, 6, 8,
-   -1, -1, -1, -1, 2, 4, 6, 8,
+    -1, -1, -1, -1, 2, 4, 6, 8,
+    -1, -1, -1, -1, 2, 4, 6, 8,
   };
   static int stepsizeTable[89] = {
     7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
@@ -1308,8 +1317,8 @@ void DrRobotAudio_t::ReadWAV(char* lpFilePath,short** VoiceBuffer,
   char *extraData;
   long extraDataLength;
   if ((rP = fopen(lpFilePath,"rb")) == NULL) {
-      printf("No such file\n");
-      return;
+    printf("No such file\n");
+    return;
   }
 
 #pragma pack(push)  /* push current alignment to stack */
@@ -1319,17 +1328,17 @@ void DrRobotAudio_t::ReadWAV(char* lpFilePath,short** VoiceBuffer,
   memset((void*)&ch,0,sizeof(ch));
 
   fread(&audioFileHeader, sizeof(audioFileHeader),1,rP);
-/*
-  for (unsigned char i=0;i<sizeof(audioFileHeader);i++)
-      printf("%x ",*((char*)(&audioFileHeader)+i));
-  printf("\n");
-*/
+  /*
+    for (unsigned char i=0;i<sizeof(audioFileHeader);i++)
+    printf("%x ",*((char*)(&audioFileHeader)+i));
+    printf("\n");
+  */
   fread(&waveFormatHeader, sizeof(waveFormatHeader),1,rP);
-/*
-   for (int i=0;i<sizeof(waveFormatHeader);i++)
-      printf("%x ",*((char*)(&waveFormatHeader)+i));
-   printf("\n");
-*/
+  /*
+    for (int i=0;i<sizeof(waveFormatHeader);i++)
+    printf("%x ",*((char*)(&waveFormatHeader)+i));
+    printf("\n");
+  */
   extraDataLength=audioFileHeader.lFormatLength-16;
   
   if (extraDataLength>0){
@@ -1357,11 +1366,11 @@ void DrRobotAudio_t::ReadWAV(char* lpFilePath,short** VoiceBuffer,
   
   //fread(&ch, sizeof(ch),1,rP); 	
   *VoiceBuffer = (short*)calloc(ch.lLen/2,sizeof(short));
-//#pragma pack(pop)
-//#pragma pack(push)  /* push current alignment to stack */
-//#pragma pack(2)     /* set alignment to 1 byte boundary */
+  //#pragma pack(pop)
+  //#pragma pack(push)  /* push current alignment to stack */
+  //#pragma pack(2)     /* set alignment to 1 byte boundary */
   *VoiceBufferSize = fread(*VoiceBuffer,sizeof(short), ch.lLen, rP);
-//#pragma pack(pop)
+  //#pragma pack(pop)
   /*
    * if(*VoiceBufferSize < 16000)
    *   VoiceLength = 1;
@@ -1380,7 +1389,7 @@ void DrRobotAudio_t::ReadWAV(char* lpFilePath,short** VoiceBuffer,
 
 #define DP_MAX		  128		     //audio data packet size
 void DrRobotAudio_t::SendVoiceBuffer(short* VoiceBuffer, 
-		     long VoiceBufferSize){
+				     long VoiceBufferSize){
   short sample[DP_MAX*2];
   long Offset=0;
   unsigned char bLength;
@@ -1446,7 +1455,7 @@ void DrRobotAudio_t::ClearAudioBuffer(){
 
 void DrRobotAudio_t::SlowDownAudio()
 {
-    audioDelay+=20;
+  audioDelay+=20;
 }
 
 
@@ -1508,13 +1517,19 @@ void * data_analizer(void *ptr) {
   unsigned char wrongFrame=0;
   while (listener->active) {    
     wrongFrame=0;
-    if (listener->data==NULL || listener->dl==0)
+    if (listener->data==NULL || listener->dl==0){
+      usleep(LOOP_DELAY_LONG);
       continue;
-    if (listener->dl<9)
+    }
+    if (listener->dl<9){
+      usleep(LOOP_DELAY_LONG);
       continue;
+    }
     rdl=listener->data[5]+9;
-    if (listener->dl<rdl)
+    if (listener->dl<rdl){
+      usleep(LOOP_DELAY_LONG);
       continue;
+    }
     if (listener->data[0]!=94 || listener->data[1]!=02) {
       //printf("wrong header\n");
       wrongFrame+=1;
@@ -1537,7 +1552,7 @@ void * data_analizer(void *ptr) {
 	//if (idm==listener->dl-2) // we reach the end of the data in the buffor
 	//  rdl=listener->dl;      // so we flush all data from the buffer
 	//else
-	  rdl=idm;
+	rdl=idm;
       }
       pthread_mutex_lock(&listener->mutex); // prevent multiacces to board->data 
       listener->dl=listener->dl-rdl;
@@ -1553,6 +1568,10 @@ void * data_analizer(void *ptr) {
       // send frame with data to recognition function
       listener->DealWithPacket(dataFrame,rdl);
     }
+    if (listener->dl>0)
+      usleep(LOOP_DELAY_SHORT);
+    else
+      usleep(LOOP_DELAY_LONG);
   } 
   return NULL;
 }
@@ -1566,8 +1585,10 @@ void * listener_function(void *ptr){
   bl=0; listener->dl=0;
   while (listener->active) {
     bl=recv(listener->board->getSockfd(), buffor, listener->totalsize*sizeof(unsigned char), 0);
-    if (bl<=0)
+    if (bl<=0) {
+      usleep(LOOP_DELAY_SHORT);
       continue;
+    }
     if (listener->dl+bl<listener->totalsize){ // if there is enough space move data from
       pthread_mutex_lock( &listener->mutex );
       memcpy(listener->data+listener->dl,buffor,bl); // the socket buffor to 
@@ -1575,6 +1596,7 @@ void * listener_function(void *ptr){
       listener->dl=listener->dl+bl;                  // the data buffor
       pthread_mutex_unlock( &listener->mutex );
     }
+    usleep(LOOP_DELAY_SHORT);
   } 
   // terminate data analizer thread
   if (buffor!=NULL) 
@@ -1709,7 +1731,7 @@ void DrRobotBoard_t::SendData(unsigned char did,unsigned short dataLength, unsig
   buffer[dl++]=did; // DID
   buffer[dl++]=dataLength; //LENGTH
   for (i=0;i<dataLength;i++)// DATA 
-      buffer[dl++]=*(data+i);
+    buffer[dl++]=*(data+i);
   buffer[dl++]=CalculateCRC(&buffer[2],buffer[5]+4); // CHECKSUM
   buffer[dl++]=94; // ETX
   buffer[dl++]=13;    
@@ -1775,8 +1797,8 @@ bool DrRobotBoard_t::Connect(const char* servername,unsigned int portno)
 
   if (connect(sockfd,(const struct sockaddr *)&serv_addr,
 	      (socklen_t)sizeof(serv_addr)) < 0) {
-      close(sockfd);
-      return false;
+    close(sockfd);
+    return false;
   }
 
   int flags;
@@ -1788,15 +1810,15 @@ bool DrRobotBoard_t::Connect(const char* servername,unsigned int portno)
 
   SendPing();
   usleep(100000);
-  if (recv(sockfd,buf,MAXBUF,0)<=0)
-      return false;
+  //if (recv(sockfd,buf,MAXBUF,0)<=0)
+  //  return false;
   return true;
 }
 
 bool DrRobotBoard_t::Disconnect()
 {
-    //shutdown(sockfd,SHUT_RDWR);
-    return close(sockfd);
+  //shutdown(sockfd,SHUT_RDWR);
+  return close(sockfd);
 }
 
 

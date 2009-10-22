@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <map>
-#include "cv.h"
 
 #define INDEX_STX0	0
 #define INDEX_STX1	1
@@ -51,6 +50,23 @@
 #define DATA_PING	 0x00
 #define DATA_URGENT_DATA 0x02
 #define DATA_SKIPPACKET	 0x03
+
+enum Board_t_N {CONTROL=0,MEDIA=1};
+enum Board_t_TECH {PMS5005=0,PMB5010=1};
+enum Board_t_ID {CONTROL_ID=1,MEDIA_ID=8};  
+
+enum ControlDevice_t_N {MOTORS=0,SENSORS=1,CUSTOMDATA=2};
+enum ControlDevice_t_ID {MOTORS_ID=123,SENSORS_ID=125,CUSTOMDATA_ID=124};
+
+enum MediaDevice_t_N {AUDIO=0,VIDEO=1,POWERCONTROLER=2};
+enum MediaDevice_t_ID {AUDIO_ID=10,VIDEO_ID=9,POWERCONTROLER_ID=124};
+
+#define PWM_CONTROL 0
+#define POSITION_CONTROL 1
+#define VELOCITY_CONTROL 2
+#define POT_SINGLE 0
+#define POT_DUAL 1
+#define ENCODER 2
 
 #pragma pack(push)  /* push current alignment to stack */
 #pragma pack(1)     /* set alignment to 1 byte boundary */
@@ -1595,11 +1611,14 @@ class DrRobotVideo_t: public DrRobotDevice_t  {
    *
    *  \return Return the pointer to the IplImage (OpenCV image)
    */
-  IplImage* getIplImage();
+  //IplImage* getIplImage();
+  unsigned char rgbArr[100000];
+  unsigned int width;
+  unsigned int height;
 private:
   unsigned char imageBuffer[MaxImageSize+1]; 
-  unsigned char rgbArr[100000];
-  IplImage* img;
+
+  //IplImage* img;
   long imageBufferPtr;
   int takingPhotoFlag;
   int Last_Line_Num;

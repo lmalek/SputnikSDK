@@ -2,7 +2,7 @@
 #include "SputnikSDK.hh"
 #include <cmath>
 #include <algorithm>
-#include <vector>
+//#include <vector>
 #include <iostream>
 
 #define MAXUSI 65536
@@ -12,7 +12,7 @@ void * taking_photo(void *ptr) {
   while (sputnik->video_T>0&& sputnik->active) {
     ((DrRobotVideo_t*)sputnik->board[MEDIA]->device[VIDEO])->TakePhoto();
     if (sputnik->active)
-	usleep(sputnik->video_T*1000*1000);
+      usleep(sputnik->video_T*1000*1000); // every video_T second take photo
   }
   return NULL;
 }
@@ -33,7 +33,7 @@ Sputnik_t::Sputnik_t()
   boardSize=2;
   board=new DrRobotBoard_t*[boardSize];
 
-  board[CONTROL] = new DrRobotBoard_t(CONTROL_ID,1);
+  board[CONTROL] = new DrRobotBoard_t(CONTROL_ID,0.1);
   board[CONTROL]->deviceSize=3;
   board[CONTROL]->device=new DrRobotDevice_t*[board[CONTROL]->deviceSize];
   board[CONTROL]->device[MOTORS]=
@@ -53,9 +53,11 @@ Sputnik_t::Sputnik_t()
     new DrRobotPowerControler_t(POWERCONTROLER_ID,board[MEDIA]);
   
 
-  SonarEMAAlpha=0.33;
+  //SonarEMAAlpha=0.33;
+  SonarEMAAlpha=1;
   SonarEMA[0]=255; SonarEMA[1]=255; SonarEMA[2]=255;
-  IREMAAlpha=0.2;
+  //IREMAAlpha=0.2;
+  IREMAAlpha=1;
   IREMA[0]=80; IREMA[1]=80; IREMA[2]=80; IREMA[3]=80;
   IREMA[4]=80; IREMA[5]=80; IREMA[6]=80; IREMA[7]=80;
 
@@ -65,9 +67,10 @@ Sputnik_t::Sputnik_t()
   HAEMAAlpha=0.5;
   HAresult = new unsigned char[2*okno];
 
-  SetVideo_T(0.1);
+  SetVideo_T(0.5);
   InVoiceBuffer=NULL;
   InVoiceBufferSize=0;
+  img = cvCreateImage(cvSize(176,144),IPL_DEPTH_8U,3);
 }
 
 Sputnik_t::~Sputnik_t()
@@ -105,10 +108,14 @@ void Sputnik_t::Start()
   MoveMouth(0,10);
   active=true;
   pthread_create( &videoThread, NULL, &taking_photo, this);
-//  board[CONTROL]->device[MOTORS]->DisableSensorSending();
-//  board[CONTROL]->device[CUSTOMDATA]->DisableSensorSending();
-//  board[CONTROL]->device[SENSORS]->DisableSensorSending();  
-//  board[MEDIA]->device[POWERCONTROLER]->DisableSensorSending();
+  board[CONTROL]->device[MOTORS]->EnableSensorSending();
+  board[CONTROL]->device[CUSTOMDATA]->EnableSensorSending();
+  board[CONTROL]->device[SENSORS]->EnableSensorSending();  
+  board[MEDIA]->device[POWERCONTROLER]->EnableSensorSending();
+  //board[CONTROL]->device[MOTORS]->DisableSensorSending();
+  //board[CONTROL]->device[CUSTOMDATA]->DisableSensorSending();
+  //board[CONTROL]->device[SENSORS]->DisableSensorSending();  
+  //board[MEDIA]->device[POWERCONTROLER]->DisableSensorSending();
 }
 
 void Sputnik_t::Stop()
@@ -193,6 +200,7 @@ unsigned char Sputnik_t::GetIR(unsigned char channel)
   distance=(22.0/(result*3.0/4095.0-0.15))+2;
   if (distance>80)
     distance=80;
+
   IREMA[channel]=IREMA[channel]+IREMAAlpha*(distance-IREMA[channel]);
   return  IREMA[channel];
 }
@@ -507,8 +515,33 @@ void Sputnik_t::SetVideo_T(float T){
 }
 
 IplImage* Sputnik_t::getIplImage(){
-  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->getIplImage();
+  int i,j;
+  for(i=0;i<144;i++) {
+      for(j=0;j<176;j++) {
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=
+	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+0);
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=
+	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+1);
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=
+	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+2);
+	}
+  }
+  //return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->getIplImage();
+  return img;
 }
+  
+	
+	unsigned char* Sputnik_t::getRGBImage(){
+	  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr;
+	}
+      
+	unsigned int Sputnik_t::getWidth(){
+	  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->width;
+	}
+	
+	unsigned int Sputnik_t::getHeight(){
+	  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->height;
+	}
 
 void Sputnik_t::StartRecord(unsigned char VoiceSegment){
   ((DrRobotAudio_t*)board[MEDIA]->device[AUDIO])->StartRecord(VoiceSegment);
@@ -557,6 +590,23 @@ long Sputnik_t::GetOutVoiceBufferSize(){
 void Sputnik_t::ClearOutVoiceBuffer(){
   return ((DrRobotAudio_t*)board[MEDIA]->device[AUDIO])->
     ClearAudioBuffer();
+}
+
+void Sputnik_t::SetSensorUsage(unsigned char SensorType){
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetSensorUsage(0, SensorType);
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetSensorUsage(1, SensorType);
+}
+void Sputnik_t::SetControlMode(unsigned char ControlMode){
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetControlMode(0,ControlMode);
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetControlMode(1,ControlMode);
+}
+void Sputnik_t::SetPositionControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100){
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetPositionControlPID(0,Kp,Kd,Ki_x100);
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetPositionControlPID(1,Kp,Kd,Ki_x100);
+}
+void Sputnik_t::SetVelocityControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100){
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetVelocityControlPID(0,Kp,Kd,Ki_x100);
+  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetVelocityControlPID(1,Kp,Kd,Ki_x100);
 }
 
 /*
