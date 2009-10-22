@@ -733,12 +733,6 @@ public:
   char GetNeckH(){return face.NeckH;};
 
   
-  void SetSensorUsage(unsigned char SensorType);  
-  void SetControlMode(unsigned char ControlMode);
-  void SetPositionControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100);
-  void SetVelocityControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100);  
-
-
 private:
   bool active;
   friend void * taking_photo(void *ptr); //!< Cyclic taking photos function
