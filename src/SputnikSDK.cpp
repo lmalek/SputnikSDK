@@ -592,23 +592,6 @@ void Sputnik_t::ClearOutVoiceBuffer(){
     ClearAudioBuffer();
 }
 
-void Sputnik_t::SetSensorUsage(unsigned char SensorType){
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetSensorUsage(0, SensorType);
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetSensorUsage(1, SensorType);
-}
-void Sputnik_t::SetControlMode(unsigned char ControlMode){
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetControlMode(0,ControlMode);
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetControlMode(1,ControlMode);
-}
-void Sputnik_t::SetPositionControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100){
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetPositionControlPID(0,Kp,Kd,Ki_x100);
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetPositionControlPID(1,Kp,Kd,Ki_x100);
-}
-void Sputnik_t::SetVelocityControlPID(unsigned short int Kp, unsigned short Kd, unsigned short int Ki_x100){
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetVelocityControlPID(0,Kp,Kd,Ki_x100);
-  ((DrRobotMotors_t*)sputnik->board[CONTROL]->device[MOTORS])->SetVelocityControlPID(1,Kp,Kd,Ki_x100);
-}
-
 /*
  * void Sputnik_t::CopyOutToInVoiceBuffer(){
  *  delete []InVoiceBuffer;
