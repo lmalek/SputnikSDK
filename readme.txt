@@ -1,7 +1,3 @@
-$Date$
-$Revision$
-$Author$
-$HeaderURL$
 $Id$
 
 Linux API for Sputnik robot.
