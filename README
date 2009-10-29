@@ -1,0 +1,53 @@
+$Id: readme.txt 4 2009-10-22 12:49:24Z lmalek $
+
+Linux API for Sputnik robot.
+
+--------------------------------------------------------------------------------
+INFO
+--------------------------------------------------------------------------------
+
+SputnikSDK is an open source library for developing software for Sputnik robot.
+This software is distributed under LGPL licence. Use it on your own risk.
+
+--------------------------------------------------------------------------------
+INSTALATION
+--------------------------------------------------------------------------------
+
+This library is prepared to work with the cmake 
+to instal compile SputnikSDK library create new directory
+
+mkdir build
+
+then run cmake, ccmake or cmake-gui to configure project
+
+ccmake ../
+
+after configuring project type
+
+make
+
+To compile example of using this library type
+
+cmake -D EXAMPLES_ENABLE=ON ../
+
+Alternatively one can type
+
+ccmake ../
+
+or
+
+cmake-gui ../
+
+and select option EXAMPLES_ENABLE
+
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+For proper running of the API one shoud have the following library.
+- pthread
+To compile example one should have 
+- allegro
+- OpenCV
+
