@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include "DrRobotSDK.hh"
-#include "uyvy2rgb.hh"
+#include "uyvy2rgb.h"
 #include <algorithm>
 
 #include <fcntl.h>

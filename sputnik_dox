@@ -92,8 +92,10 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT                  = ./ \
-                         ./inc/ \
-                         ./src
+                         ./src/libSputnikSDK/include/ \
+                         ./src/libSputnikSDK/src/ \
+			 ../src/libSputnikSDK/include/ \
+                         ../src/libSputnikSDK/src/ 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \

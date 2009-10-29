@@ -3,6 +3,7 @@
 #include "SputnikSDK.hh"
 
 #include <allegro.h>
+#include "cv.h"
 
 
 #include <limits>
@@ -24,6 +25,25 @@ double Tab_u[2][Tab_n];
 
 const double r=0.17/2;
 const double L=0.268;
+
+
+void RGB2IplImage(IplImage *img,
+		  const unsigned char* rgbArray, 
+		  unsigned int width, 
+		  unsigned int height){
+  int i,j;
+  for(i=0;i<height;i++) {
+      for(j=0;j<width;j++) {
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=
+	    *(rgbArray+i*176*3+j*3+0);
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=
+	    *(rgbArray+i*176*3+j*3+1);
+	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=
+	    *(rgbArray+i*176*3+j*3+2);
+	}
+  }
+}
+  
 
 inline int signof(double a) { return (a == 0) ? 0 : (a<0 ? -1 : 1); }
 
@@ -187,7 +207,7 @@ void init() {
   set_color_depth(depth);
   res = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 800, 600, 0, 0);
   if (res != 0) {
-    allegro_message(allegro_error);
+    allegro_message("Allegro error : %s\n",allegro_error);
     exit(-1);
   }
 
@@ -205,6 +225,8 @@ void deinit() {
 int main(int argc, char *argv[])
 {
   init();
+  IplImage* img; // openCV image
+  img = cvCreateImage(cvSize(176,144),IPL_DEPTH_8U,3);
 
   int P=6, D=0, I=0; // nastawy regulatora PID
 
@@ -432,7 +454,8 @@ int main(int argc, char *argv[])
     /*
      *  RYSOWANIE
      */
-    Fill_Bitmap(camera,sputnik->getIplImage(),scale); // kamer
+    RGB2IplImage(img,sputnik->getRGBImage(), sputnik->getWidth(), sputnik->getHeight());
+    Fill_Bitmap(camera,img,scale); // kamer
 
     for (i=0;i<200;i++) { // czujniki ruchu
       line(plotHM_0,i,100-humanM0[i],(i+1),100-humanM0[i+1],makecol( 255, 0, 0));

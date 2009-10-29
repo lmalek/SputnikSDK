@@ -1,7 +1,7 @@
 // JpegDecode.c: 
 //
 //////////////////////////////////////////////////////////////////////
-#include "uyvy2rgb.hh" //consit a heder for a ANSI C programing
+#include "uyvy2rgb.h" //consit a heder for a ANSI C programing
 #include <memory.h>
 #include <stdlib.h>  // for abs
 #include "JpegDecodeHuffMan.h"

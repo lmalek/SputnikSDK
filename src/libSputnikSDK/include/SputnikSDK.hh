@@ -14,7 +14,7 @@
  * 
  *  \section Introduction
  *
- *  This document describes a Aplication Programing Interface (API) for
+ *  This document describes a Software Development Kit (SDK) for
  *  DrRobot Sputnik robot. This API is based on a row protocol and allow to
  *  comunicate with robot under Linux system in simmilar way that it is
  *  posible in Windows environment. For any details related with the
@@ -26,8 +26,8 @@
  *
  *  \section Licence
  *
- *  This API is aviable under the GNU GPL. See 
- *  http://www.gnu.org/copyleft/gpl.html
+ *  This SDK is aviable under the GNU LGPL. See 
+ *  http://www.gnu.org/copyleft/lgpl.html
  *  for more details.
  *
  *  \section Restrictions
@@ -40,11 +40,10 @@
 
 
 #if !defined(SPUTNIKSDK_H)
-#define SPUTNIKSDK_H
+#define SPUTNIKSDK_H 
 
 #include "DrRobotSDK.hh"
 #include <list>
-#include "cv.h"
 
 
 /*! \class Sputnik_t
@@ -638,8 +637,6 @@ public:
    *
    *  \return Return the pointer to the IplImage (OpenCV image)
    */
-  IplImage* getIplImage();
-
   unsigned char* getRGBImage();
   
   unsigned int getWidth();
@@ -771,8 +768,6 @@ private:
   
   unsigned char sensor_type;
   unsigned char control_mode;
-  IplImage* img;
-
 };
 
   

@@ -2,7 +2,6 @@
 #include "SputnikSDK.hh"
 #include <cmath>
 #include <algorithm>
-//#include <vector>
 #include <iostream>
 
 #define MAXUSI 65536
@@ -70,33 +69,32 @@ Sputnik_t::Sputnik_t()
   SetVideo_T(0.5);
   InVoiceBuffer=NULL;
   InVoiceBufferSize=0;
-  img = cvCreateImage(cvSize(176,144),IPL_DEPTH_8U,3);
 }
 
 Sputnik_t::~Sputnik_t()
 {
   for (int i=0;i<boardSize;i++)
-  	delete board[i];
+    delete board[i];
   delete [] board;
 }
 bool Sputnik_t::Connect(const char* servername,unsigned int portno1,unsigned int portno2){
-    bool result;
-    result=board[CONTROL]->Connect(servername,portno1);
-    if (result)
-	result=board[MEDIA]->Connect(servername,portno2);
-    return result;
+  bool result;
+  result=board[CONTROL]->Connect(servername,portno1);
+  if (result)
+    result=board[MEDIA]->Connect(servername,portno2);
+  return result;
 }
 
 void Sputnik_t::Disconnect()
 {
   for(int i=0;i<boardSize;i++)
-	board[i]->Disconnect();
+    board[i]->Disconnect();
 }
 
 void Sputnik_t::Start()
 {
   for(int i=0;i<boardSize;i++)
-	board[i]->start();
+    board[i]->start();
   
   face.EyesV=100;
   face.EyesH=100;
@@ -124,7 +122,7 @@ void Sputnik_t::Stop()
   pthread_join(videoThread,NULL);
   ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoDisableAll();
   for(int i=0;i<boardSize;i++)
-	board[i]->stop();
+    board[i]->stop();
 }
 
 void Sputnik_t::MoveEyesVH(char positionV, char positionH, unsigned char speed)
@@ -319,15 +317,15 @@ void Sputnik_t::SuspendMotors()
 }
 
 void Sputnik_t::SetPositionControlPID(unsigned short int Kp, 
-			   unsigned short Kd, 
-			   unsigned short int Ki_x100){
+				      unsigned short Kd, 
+				      unsigned short int Ki_x100){
   ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->SetPositionControlPID(0,Kp,Kd,Ki_x100);
   ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->SetPositionControlPID(1,Kp,Kd,Ki_x100);
 }
 
 void Sputnik_t::SetVelocityControlPID(unsigned short int Kp, 
-			   unsigned short Kd, 
-			   unsigned short int Ki_x100){
+				      unsigned short Kd, 
+				      unsigned short int Ki_x100){
   ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->SetVelocityControlPID(0,Kp,Kd,Ki_x100);
   ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->SetVelocityControlPID(1,Kp,Kd,Ki_x100);
 }
@@ -343,8 +341,8 @@ void Sputnik_t::SetControlMode(unsigned char ControlMode){
 }
 
 void Sputnik_t::PositionCtrSingle(unsigned char channel,
-			    unsigned short int cmdValue,
-			    unsigned short int timePeriod){
+				  unsigned short int cmdValue,
+				  unsigned short int timePeriod){
   if (channel>1)
     return;
   if (timePeriod>0)
@@ -354,8 +352,8 @@ void Sputnik_t::PositionCtrSingle(unsigned char channel,
 }
 
 void Sputnik_t::VelocityCtrSingle(unsigned char channel,
-			    short int cmdValue,
-			    unsigned short int timePeriod){
+				  short int cmdValue,
+				  unsigned short int timePeriod){
   if (channel>1)
     return;
   if (timePeriod>0)
@@ -365,8 +363,8 @@ void Sputnik_t::VelocityCtrSingle(unsigned char channel,
 }
 
 void Sputnik_t::PwmCtrSingle(unsigned char channel,
-		       unsigned short int cmdValue,
-		       unsigned short int timePeriod){
+			     unsigned short int cmdValue,
+			     unsigned short int timePeriod){
   if (channel>1)
     return;
   if (timePeriod>0)
@@ -387,17 +385,17 @@ void Sputnik_t::PositionCtr(unsigned short int cmdValue0,
 void Sputnik_t::VelocityCtr(short int cmdValue0,
 			    short int cmdValue1,
 			    unsigned short int timePeriod){
-    if (timePeriod>0)
-	((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityTimeCtrAll(MAXUSI-cmdValue0-1,cmdValue1,0x8000,0x8000,0x8000,0x8000,timePeriod);
-	//((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityTimeCtrAll(cmdValue0,cmdValue1,0x8000,0x8000,0x8000,0x8000,timePeriod);
-    else
-	((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityNonTimeCtrAll(MAXUSI-cmdValue0-1,cmdValue1,0x8000,0x8000,0x8000,0x8000);    
-	//((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityNonTimeCtrAll(cmdValue0,cmdValue1,0x8000,0x8000,0x8000,0x8000);    
+  if (timePeriod>0)
+    ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityTimeCtrAll(MAXUSI-cmdValue0-1,cmdValue1,0x8000,0x8000,0x8000,0x8000,timePeriod);
+  //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityTimeCtrAll(cmdValue0,cmdValue1,0x8000,0x8000,0x8000,0x8000,timePeriod);
+  else
+    ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityNonTimeCtrAll(MAXUSI-cmdValue0-1,cmdValue1,0x8000,0x8000,0x8000,0x8000);    
+  //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->VelocityNonTimeCtrAll(cmdValue0,cmdValue1,0x8000,0x8000,0x8000,0x8000);    
 }
 
 void Sputnik_t::PwmCtr(unsigned short int cmdValue0,
-			    unsigned short int cmdValue1,
-			    unsigned short int timePeriod){
+		       unsigned short int cmdValue1,
+		       unsigned short int timePeriod){
   if (timePeriod>0)
     ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->PwmTimeCtrAll(16363+cmdValue0,16363+cmdValue1,0x8000,0x8000,0x8000,0x8000,timePeriod);
   else
@@ -514,29 +512,12 @@ void Sputnik_t::SetVideo_T(float T){
   video_T=T;
 }
 
-IplImage* Sputnik_t::getIplImage(){
-  int i,j;
-  for(i=0;i<144;i++) {
-      for(j=0;j<176;j++) {
-	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 0]=
-	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+0);
-	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 1]=
-	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+1);
-	  ((uchar *)(img->imageData + i*img->widthStep))[j*img->nChannels + 2]=
-	    *(((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr+i*176*3+j*3+2);
-	}
-  }
-  //return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->getIplImage();
-  return img;
+unsigned char* Sputnik_t::getRGBImage(){
+  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr;
 }
-  
-	
-	unsigned char* Sputnik_t::getRGBImage(){
-	  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->rgbArr;
-	}
       
-	unsigned int Sputnik_t::getWidth(){
-	  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->width;
+unsigned int Sputnik_t::getWidth(){
+  return ((DrRobotVideo_t*)board[MEDIA]->device[VIDEO])->width;
 	}
 	
 	unsigned int Sputnik_t::getHeight(){
