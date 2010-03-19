@@ -16,6 +16,13 @@ else(DOC_ENABLE STREQUAL OFF)
   message(STATUS "[ to disable examples run with parameter: -D DOC_ENABLE=OFF      ]")
 endif(DOC_ENABLE STREQUAL OFF)
 
+option(PLAYER_ENABLE "Enable Player" OFF)
+if(PLAYER_ENABLE STREQUAL OFF)
+  message(STATUS "[ to enable Player module and client: -D PLAYER_ENABLE=ON   ]")
+else(PLAYER_ENABLE STREQUAL OFF)
+  message(STATUS "[ to disable Player module and client: -D PLAYER_ENABLE=OFF ]")
+endif(PLAYER_ENABLE STREQUAL OFF)
+
 
 
 # where the SputnikSDK library is, value set when checking this library
@@ -27,6 +34,11 @@ add_subdirectory(src)
 if(EXAMPLES_ENABLE STREQUAL ON)
   add_subdirectory(examples)
 endif(EXAMPLES_ENABLE STREQUAL ON)
+
+if(PLAYER_ENABLE STREQUAL ON)
+  add_subdirectory(player)
+  execute_process(COMMAND cp -r ${CMAKE_SOURCE_DIR}/player/driver/sputnik.cfg  ${CMAKE_BINARY_DIR}/player/driver/)
+endif(PLAYER_ENABLE STREQUAL ON)
 
 set(DOC_CONFIG_FILE ${PROJECT_SOURCE_DIR}/sputnik_dox)
 if(DOC_ENABLE STREQUAL ON)

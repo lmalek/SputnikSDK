@@ -324,7 +324,6 @@ int main(int argc, char *argv[])
       humanM1[i]=humanM1[i+1];
     }
     humanM0[199]=sputnik->GetHumanMotion(0);
-    humanM0[199]=sputnik->GetIR(0);
     humanM1[199]=sputnik->GetHumanMotion(1);
   
     /*

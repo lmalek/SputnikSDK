@@ -51,3 +51,17 @@ To compile example one should have
 - allegro
 - OpenCV
 
+
+--------------------------------------------------------------------------------
+PLAYER driver and joystic client
+--------------------------------------------------------------------------------
+
+Library contains Player driver for the Sputnik robot. Driver implements platform
+mobility functions, range sensors and head actuators. It does not implement 
+camera and sound system.
+
+Driver is prepared to work with Player 2.0.4 (default in current ubuntu 
+repository) and also works with Player 2.0.5 compiled from the source.
+
+Directory player/driver contain example configuration file for the driver.
+

@@ -414,12 +414,52 @@ void Sputnik_t::DisableServos()
 
 
 void Sputnik_t::ServoCtrSingle(unsigned char channel, 
-			       unsigned short int cmdValue,
+			       char cmdValue,
 			       unsigned short int timePeriod){
   if (timePeriod>0)
-    ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,cmdValue,timePeriod);
+    //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,cmdValue,timePeriod);
+    switch (channel) {
+    case 0:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,(1.3+0.6*(0.01*cmdValue))*2250,timePeriod);
+      break;
+    case 1:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,(1.5+0.8*(0.01*cmdValue))*2250,timePeriod);
+      break;
+    case 2:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,(1.23+0.27*(0.01*cmdValue))*2250,timePeriod);
+      break;
+      //    case 3:
+      //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,0x8000,timePeriod);
+      //break;
+    case 4:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,(1.5+0.4*(0.01*cmdValue))*2250,timePeriod);
+      break;      
+    case 5:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoTimeCtr(channel,(1.5+0.4*(0.01*cmdValue))*2250,timePeriod);
+      break;
+    }
   else
-    ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,cmdValue);
+    //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,cmdValue);
+    switch (channel) {
+    case 0:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,(1.3+0.6*(0.01*cmdValue))*2250);
+      break;
+    case 1:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,(1.5+0.8*(0.01*cmdValue))*2250);
+      break;
+    case 2:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,(1.23+0.27*(0.01*cmdValue))*2250);
+      break;
+      //    case 3:
+      //((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,0x8000,timePeriod);
+      //break;
+    case 4:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,(1.5+0.4*(0.01*cmdValue))*2250);
+      break;      
+    case 5:
+      ((DrRobotMotors_t*)board[CONTROL]->device[MOTORS])->ServoNonTimeCtr(channel,(1.5+0.4*(0.01*cmdValue))*2250);
+      break;
+    }
 }
 
 void Sputnik_t::ServoCtr(char neckV,char neckH,unsigned char mouth,

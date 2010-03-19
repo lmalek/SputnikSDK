@@ -488,7 +488,7 @@ public:
    *  \param timePeriod - executing time in miliseconds
    */
   void ServoCtrSingle(unsigned char channel, 
-		      unsigned short int cmdValue,
+		      char cmdValue,
 		      unsigned short int timePeriod=0);
 
   /*! \brief Sends position control command to all servos
