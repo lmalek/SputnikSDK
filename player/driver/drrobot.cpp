@@ -237,6 +237,9 @@ DRROBOT::DRROBOT(ConfigFile* cf, int section)
   this->vel_kp = cf->ReadInt(section, "vel_kp", -1);
   this->vel_kd = cf->ReadInt(section, "vel_kd", -1);
   this->vel_ki = cf->ReadInt(section, "vel_ki", -1);
+  
+  this->max_speed = cf->ReadFloat(section,"max_speed",1); // [m/s]
+  this->max_turnrate = cf->ReadFloat(section,"max_turnrate",0.5); // [rad/s]
 
   this->psos_serial_port = cf->ReadString(section,"port",DEFAULT_DRROBOT_PORT);
   //this->psos_use_tcp = cf->ReadBool(section, "use_tcp", false); 
@@ -1041,10 +1044,20 @@ void DRROBOT::HandlePositionCommand(player_position2d_cmd_vel_t position_cmd) {
   
   // TODO: poprawic changeTime  
   //unsigned int noControl=0x8000;
-  unsigned int changeTime=0; // czas narostu zbocza w [ms]
+  unsigned int changeTime=0; // velocity change period in [ms]
 
-  speedDemand = position_cmd.vel.px; // predkosc liniowa wzdłóżna [m/s]
-  turnRateDemand = position_cmd.vel.pa; // predkosc obrotowa [rad/s]
+  speedDemand = position_cmd.vel.px; // linear velocity [m/s]
+  turnRateDemand = position_cmd.vel.pa; // angular velocity [rad/s]
+
+  if ( speedDemand > max_speed )
+    speedDemand = max_speed;
+  if ( speedDemand < -max_speed )
+    speedDemand = -max_speed;
+  if ( turnRateDemand > max_turnrate )
+    turnRateDemand = max_turnrate;
+  if ( turnRateDemand < -max_turnrate )
+    turnRateDemand = -max_turnrate;  
+
 
   leftvel=speedDemand/robot_R-robot_L*turnRateDemand/robot_R/2; // [rad/s]
   rightvel=speedDemand/robot_R+robot_L*turnRateDemand/robot_R/2; // [rad/s]

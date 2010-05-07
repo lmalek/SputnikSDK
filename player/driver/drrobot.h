@@ -166,7 +166,10 @@ class DRROBOT : public Driver{
 
    // PID settings
    int pos_kp, pos_kd, pos_ki, vel_kp, vel_kd, vel_ki;
-   
+   // maximal speed values
+   float max_speed; //! maximal linear velosity in [m/s]
+   float max_turnrate; //! maximal angular velocity in [rad/s]
+
    //! number of subscriptions to the position driver
    int position_subscriptions; 	
    //! number of subscriptions to the sonar driver
