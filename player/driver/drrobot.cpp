@@ -164,10 +164,12 @@ DRROBOT::DRROBOT(ConfigFile* cf, int section)
   memset(&this->ir_id, 0, sizeof(player_devaddr_t));
   memset(&this->power_id, 0, sizeof(player_devaddr_t));
   memset(&this->actarray_id, 0, sizeof(player_devaddr_t));
+  //  memset(&this->dummyLaser_id, 0, sizeof(player_devaddr_t));
 
   // set by default no subscriptions to the devices
   this->position_subscriptions = this->sonar_subscriptions = 0;
   this->ir_subscriptions = this->actarray_subscriptions = 0;
+  //  this->dummyLaser_subscriptions = 0;
 
   this->pulse = -1;
 
@@ -214,6 +216,15 @@ DRROBOT::DRROBOT(ConfigFile* cf, int section)
     this->InQueue->AddReplaceRule (this->actarray_id, PLAYER_MSGTYPE_CMD, PLAYER_ACTARRAY_SPEED_CMD, false);
     this->InQueue->AddReplaceRule (this->actarray_id, PLAYER_MSGTYPE_CMD, PLAYER_ACTARRAY_HOME_CMD, false);
   }
+
+  // Do we create a laser interface?
+    if(cf->ReadDeviceAddr(&(this->dummyLaser_id), section, "provides",
+                      PLAYER_LASER_CODE, -1, NULL) == 0) {
+    if(this->AddInterface(this->dummyLaser_id) != 0) {
+      this->SetError(-1); return;
+    }
+  }
+  
 
   // build the table of robot parameters.
   //::initialize_robot_params();
@@ -377,6 +388,9 @@ int DRROBOT::Subscribe(player_devaddr_t id) {
       this->ir_subscriptions++;
     else if(Device::MatchDeviceAddress(id, this->actarray_id))
       this->actarray_subscriptions++;
+    else if(Device::MatchDeviceAddress(id, this->dummyLaser_id))
+      this->dummyLaser_subscriptions++;
+
   }
   return(setupResult);
 }
@@ -403,6 +417,12 @@ int DRROBOT::Unsubscribe(player_devaddr_t id) {
       this->actarray_subscriptions--;
       assert(this->actarray_subscriptions >= 0);
     }
+    else if(Device::MatchDeviceAddress(id, this->dummyLaser_id)) {
+      this->dummyLaser_subscriptions--;
+      assert(this->dummyLaser_subscriptions >= 0);
+    }
+
+
   }
   return(shutdownResult);
 }
@@ -452,6 +472,16 @@ void DRROBOT::PutData(void) {
                 (void*)&(this->drrobot_data.head),
                 sizeof(player_actarray_data_t),
                 NULL);
+
+  // put dummy laser data
+   this->Publish(this->dummyLaser_id, NULL, 
+		PLAYER_MSGTYPE_DATA, 
+		PLAYER_LASER_DATA_SCAN,
+		(void*)&(this->drrobot_data.dummyLaser), 
+		sizeof (player_laser_data_t),
+		NULL);
+  
+  
 }
 
 void DRROBOT::Main() {
@@ -522,7 +552,7 @@ void DRROBOT::RefreshData() {
     //TODO: tu wpisac przekopiowanie danych ze struktury sputnika do strukury playera
     //TODO: nalezalo by to przerzucic do odrebnej funkcji
     this->drrobot_data.sonar.ranges_count = 3;
-    this->drrobot_data.sonar.ranges[0] = 0.01*sputnik->GetSonar(0); // [cm]->[m]							       
+    this->drrobot_data.sonar.ranges[0] = 0.01*sputnik->GetSonar(0); // [cm]->[m]	       
     this->drrobot_data.sonar.ranges[1] = 0.01*sputnik->GetSonar(1); 
     this->drrobot_data.sonar.ranges[2] = 0.01*sputnik->GetSonar(2);
 
@@ -545,6 +575,24 @@ void DRROBOT::RefreshData() {
     this->drrobot_data.position.vel.pa = robot_R/robot_L * (sputnik->ur - sputnik->ul);
 
     this->drrobot_data.position.stall = 0;
+
+    // dommyLaser
+
+    this->drrobot_data.dummyLaser.min_angle = DTOR(-45);
+    this->drrobot_data.dummyLaser.max_angle = DTOR(45);
+    this->drrobot_data.dummyLaser.max_range = 0.8;
+    this->drrobot_data.dummyLaser.ranges_count = 7;
+    this->drrobot_data.dummyLaser.resolution = DTOR(15);
+    this->drrobot_data.dummyLaser.intensity_count = 0;
+    this->drrobot_data.dummyLaser.id += 1;
+    this->drrobot_data.dummyLaser.ranges[6] = 0.2+(this->drrobot_data.sonar.ranges[0]>0.8?0.8:this->drrobot_data.sonar.ranges[0]);
+    this->drrobot_data.dummyLaser.ranges[5] = 0.2+(this->drrobot_data.ir.ranges[0]);
+    this->drrobot_data.dummyLaser.ranges[4] = 0.2+(this->drrobot_data.ir.ranges[1]);
+    this->drrobot_data.dummyLaser.ranges[3] = 0.2+(this->drrobot_data.sonar.ranges[1]>0.8?0.8:this->drrobot_data.sonar.ranges[1]);
+    this->drrobot_data.dummyLaser.ranges[2] = 0.2+(this->drrobot_data.ir.ranges[2]);
+    this->drrobot_data.dummyLaser.ranges[1] = 0.2+(this->drrobot_data.ir.ranges[3]);
+    this->drrobot_data.dummyLaser.ranges[0] = 0.2+(this->drrobot_data.sonar.ranges[2]>0.8?0.8:this->drrobot_data.sonar.ranges[2]);
+
 }
 
 void DRROBOT::ResetRawPositions() {
@@ -775,12 +823,25 @@ int DRROBOT::HandleConfig(MessageQueue* resp_queue,
 		  PLAYER_ACTARRAY_POWER_REQ);
     return(0);
   }
-  // PLAYER_ACTARRAY_BRAKES_REQ  -- nie obsługiwane
-  //else if(Message::MatchMessage(hdr,PLAYER_MSGTYPE_REQ, PLAYER_ACTARRAY_BRAKES_REQ
-  //                              this->actarray_id)) {
+  // PLAYER_ACTARRAY_BRAKES_REQ  -- used as a trkick to deal with muti servo change
+  else if(Message::MatchMessage(hdr,PLAYER_MSGTYPE_REQ, PLAYER_ACTARRAY_BRAKES_REQ,
+                                this->actarray_id)) {
   //  /* request for the actarray breaks state */
+   /* motor state change request
+     *   1 = enable motors
+     *   0 = disable motors (default)
+     */
+    if(hdr->size != sizeof(player_actarray_power_config_t)) {
+      PLAYER_WARN("Arg to actarray state change request wrong size; ignoring");
+      return(-1);
+    }
+    player_actarray_brakes_config_t* brakes_config =
+      (player_actarray_brakes_config_t*)data;
+    actarrayBrakes= brakes_config->value;
+    this->Publish(this->actarray_id, resp_queue, PLAYER_MSGTYPE_RESP_ACK, 
+		  PLAYER_ACTARRAY_BRAKES_REQ);
   //  return(0);
-  //}
+  }
   // PLAYER_ACTARRAY_GET_GEOM_REQ
   else if(Message::MatchMessage(hdr,PLAYER_MSGTYPE_REQ, PLAYER_ACTARRAY_GET_GEOM_REQ,
                                 this->actarray_id)) {
@@ -812,6 +873,60 @@ int DRROBOT::HandleConfig(MessageQueue* resp_queue,
 		  PLAYER_ACTARRAY_SPEED_REQ);
     return(0);
   }
+
+  // ----------------------------------------------------------------------
+  //                   DUMMYLASER
+  // ----------------------------------------------------------------------
+  // 
+  // Property handlers that need to be done manually 
+  else if (Message::MatchMessage (hdr, PLAYER_MSGTYPE_REQ, PLAYER_LASER_REQ_SET_CONFIG, this->device_addr))
+    {	
+      player_laser_config_t *req = reinterpret_cast<player_laser_config_t *> (data);
+      Publish (device_addr, resp_queue,PLAYER_MSGTYPE_RESP_ACK,
+	       PLAYER_LASER_REQ_SET_CONFIG, data,hdr->size, NULL);
+      return 0;
+    }
+
+  // Standard ranger messages
+  else if (Message::MatchMessage (hdr, PLAYER_MSGTYPE_REQ, PLAYER_LASER_REQ_GET_GEOM,
+				  device_addr))
+    {
+      player_laser_geom_t _geom;
+      // Set up geometry information
+      _geom.pose.px = 0.0;
+      _geom.pose.py = 0.0;
+      _geom.pose.pa = 0.0;
+      _geom.size.sw = 0.05;
+      _geom.size.sl = 0.05;
+      Publish (device_addr, resp_queue, PLAYER_MSGTYPE_RESP_ACK, PLAYER_LASER_REQ_GET_GEOM,
+	       &_geom, sizeof (_geom), NULL);
+      return 0;
+    }
+  else if (Message::MatchMessage (hdr, PLAYER_MSGTYPE_REQ, PLAYER_LASER_REQ_GET_CONFIG,
+				  device_addr))
+    {
+      player_laser_config_t rangerConfig;
+      rangerConfig.min_angle = DTOR(-45);
+      rangerConfig.max_angle = DTOR(45);
+      rangerConfig.resolution = DTOR (15);
+      rangerConfig.max_range = 0.8;
+      rangerConfig.range_res = 0.05; // 1cm
+      Publish(device_addr, resp_queue, PLAYER_MSGTYPE_RESP_ACK, 	
+	      PLAYER_LASER_REQ_GET_CONFIG,&rangerConfig, 
+	      sizeof(rangerConfig), NULL);
+      return 0;
+    }
+  /*
+  else if (Message::MatchMessage (hdr, PLAYER_MSGTYPE_REQ, PLAYER_LASER_REQ_SET_CONFIG,
+				  device_addr))
+    {
+      
+      Publish(device_addr, resp_queue, PLAYER_MSGTYPE_RESP_ACK,
+	      PLAYER_LASER_REQ_GET_CONFIG,newParams, 
+	      sizeof (*newParams), NULL);
+      return 0;
+    }
+  */
   // ----------------------------------------------------------------------
   // 
   // ======================================================================
@@ -888,9 +1003,16 @@ int DRROBOT::HandleCommand(player_msghdr * hdr, void* data) {
       actarray_cmd.position = robotParams.head.actuators[actarray_cmd.joint].min;
     if (actarray_cmd.position > robotParams.head.actuators[actarray_cmd.joint].max)
       actarray_cmd.position = robotParams.head.actuators[actarray_cmd.joint].max;
-
-    sputnik->ServoCtrSingle(actarray_cmd.joint, RAD2SPUTNIK(actarray_cmd.position), moveTime);
+    //    sputnik->ServoCtrSingle(actarray_cmd.joint, RAD2SPUTNIK(actarray_cmd.position), moveTime);
     drrobot_data.head.actuators[actarray_cmd.joint].position = actarray_cmd.position;
+    if (actarrayBrakes==0){
+      sputnik->ServoCtr(RAD2SPUTNIK(drrobot_data.head.actuators[0].position),
+			RAD2SPUTNIK(drrobot_data.head.actuators[1].position),
+			RAD2SPUTNIK(drrobot_data.head.actuators[2].position),
+			RAD2SPUTNIK(drrobot_data.head.actuators[4].position),
+			RAD2SPUTNIK(drrobot_data.head.actuators[5].position),
+			abs(100.0/robotParams.head.actuators[actarray_cmd.joint].config_speed*1000));
+    }
     retVal = 0;
   }
   //if(Message::MatchMessage(hdr,PLAYER_MSGTYPE_CMD,

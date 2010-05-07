@@ -118,6 +118,7 @@ typedef struct player_drrobot_data
   player_ir_data_t ir;       //! IR sensors
   player_power_data_t power; //! power control
   player_actarray_data_t head; //! head actuators
+  player_laser_data_t dummyLaser; //! dummy laser
 } __attribute__ ((packed)) player_drrobot_data_t;
 
 
@@ -161,6 +162,7 @@ class DRROBOT : public Driver{
    player_devaddr_t ir_id;       //! IR interface addres
    player_devaddr_t power_id;    //! power control interface addres
    player_devaddr_t actarray_id;  //! head actuators interface addres
+   player_devaddr_t dummyLaser_id;  //! head actuators interface addres
 
    // PID settings
    int pos_kp, pos_kd, pos_ki, vel_kp, vel_kd, vel_ki;
@@ -173,6 +175,7 @@ class DRROBOT : public Driver{
    int ir_subscriptions;
    //! number of subscriptions to the head actuators driver
    int actarray_subscriptions;
+   int dummyLaser_subscriptions;
 
    /*!
     * Zeros robot platform position
@@ -233,6 +236,10 @@ class DRROBOT : public Driver{
    double lastPulseTime;   //! Last time of sending a pulse or command to the robot
    void SendPulse (void);  //! Send "ping" to the robot
    void RefreshData(void); //! geather data from devices
+
+   bool actarrayBrakes; //! actarray brakes used to allow changes in all servos
+			//! by enabling brakes, seting servos (all but last),
+			//! disabling brakes, seting last servo
    
  public:
    /*!
