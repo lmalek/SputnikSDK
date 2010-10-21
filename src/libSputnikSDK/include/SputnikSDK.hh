@@ -64,7 +64,7 @@ public:
    *
    *  Destructor
    */
-  ~Sputnik_t();
+  virtual ~Sputnik_t();
   
   /*! \brief Connect to the robot
    *
